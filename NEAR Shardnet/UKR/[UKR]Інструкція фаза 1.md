@@ -269,12 +269,16 @@ near validators current
 
 ## Rust встановлений, і ми готові до збирання nearcore.
 1. Клонуйте репозиторій
-````
+```
 git clone https://github.com/near/nearcore
 cd nearcore
 git fetch
-git checkout 8448ad1ebf27731a43397686103aa5277e7f2fcf
-````
+```
+
+Потрібна перевірка до коміту. Зверніться до коміту, визначеного в [цьому файлі](https://github.com/near/stakewars-iii/blob/main/commit.md)
+```
+git checkout
+```
 
 2. Скомпілюйте останню версію nearcore. Це займе деякий час.
 ````
