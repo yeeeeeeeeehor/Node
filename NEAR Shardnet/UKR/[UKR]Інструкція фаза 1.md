@@ -428,6 +428,71 @@ near call <pool_name> update_reward_fee_fraction '{"reward_fee_fraction": {"nume
 near call <staking_pool_id> deposit_and_stake --amount <amount> --accountId <accountId> --gas=30000000000000000
 ```
 
+## Створити завдання cron
+
+* Створіть новий файл у /home/<USER_ID>/scripts/ping.sh
+```
+#!/bin/sh
+# Ping call to renew Proposal added to crontab
+
+export NEAR_ENV=shardnet
+export LOGS=/home/<USER_ID>/logs
+export POOLID=<YOUR_POOL_ID>
+export ACCOUNTID=<YOUR_ACCOUNT_ID>
+
+echo "---" >> $LOGS/all.log
+date >> $LOGS/all.log
+near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
+near proposals | grep $POOLID >> $LOGS/all.log
+near validators current | grep $POOLID >> $LOGS/all.log
+near validators next | grep $POOLID >> $LOGS/all.log
+```
+* Створіть новий crontab, який запускатиметься кожні 5 хвилин:
+```
+crontab -e
+*/5 * * * * sh /home/<USER_ID>/scripts/ping.sh
+```
+* Виведіть список crontab, щоб побачити, як він працює:
+```
+crontab -l
+```
+* Перегляньте свої журнали
+```
+cat home/<USER_ID>/logs/all.log
+```
+
+
+
+## Монітор
+
+#### Файли журналу
+Файл журналу зберігається або в каталозі ~/.nearup/logs, або в systemd залежно від ваших налаштувань.
+
+```
+journalctl -n 100 -f -u neard | ccze -A
+```
+
+```
+sudo apt install curl jq
+```
+###### Загальні команди:
+Перевірте свою версію вузла:
+```
+curl -s http://127.0.0.1:3030/status | jq .version
+```
+Перевірте делегатів і ставку
+```
+near view <your pool>.factory.shardnet.near get_accounts '{"from_index": 0, "limit": 10}' --accountId <accountId>.shardnet.near
+```
+Перевірте причину перевірки
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.prev_epoch_kickout[] | select(.account_id | contains ("<POOL_ID>"))' | jq .reason
+```
+Перевірка створених/очікуваних блоків
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.current_validators[] | select(.account_id | contains ("POOL_ID"))'
+```
+
 
 
 
@@ -486,38 +551,6 @@ near call <staking_pool_id> pause_staking '{}' --accountId <accountId>
 ```
 near call <staking_pool_id> resume_staking '{}' --accountId <accountId>
 ```
-* Створіть новий файл у /home/<USER_ID>/scripts/ping.sh
-```
-#!/bin/sh
-# Ping call to renew Proposal added to crontab
-
-export NEAR_ENV=shardnet
-export LOGS=/home/<USER_ID>/logs
-export POOLID=<YOUR_POOL_ID>
-export ACCOUNTID=<YOUR_ACCOUNT_ID>
-
-echo "---" >> $LOGS/all.log
-date >> $LOGS/all.log
-near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
-near proposals | grep $POOLID >> $LOGS/all.log
-near validators current | grep $POOLID >> $LOGS/all.log
-near validators next | grep $POOLID >> $LOGS/all.log
-```
-* Створіть новий crontab, який запускатиметься кожні 5 хвилин:
-```
-crontab -e
-*/5 * * * * sh /home/<USER_ID>/scripts/ping.sh
-```
-* Виведіть список crontab, щоб побачити, як він працює:
-```
-crontab -l
-```
-* Перегляньте свої журнали
-```
-cat home/<ID_КОРИСТУВАЧА>/logs/all.log
-```
-> І нарешті вузол став валідатором!
-
 
 
 
