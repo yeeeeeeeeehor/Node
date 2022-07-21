@@ -427,14 +427,6 @@ Let’s change reward commission to 1-100%
 ```
 near call <pool_name> update_reward_fee_fraction '{"reward_fee_fraction": {"numerator": 1, "denominator": 100}}' --accountId <account_id> --gas=300000000000000
 ```
-In order to become validator we need NEAR on in our pool balance about seat price, let’s send 1000 NEAR.
-
-```
-near call <staking_pool_id> deposit_and_stake --amount <amount> --accountId <accountId> --gas=300000000000000
-```
-
-
-
 
 ## Other Command
 Unstake NEAR
