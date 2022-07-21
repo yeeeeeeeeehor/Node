@@ -273,7 +273,11 @@ near validators current
 git clone https://github.com/near/nearcore
 cd nearcore
 git fetch
-git checkout 8448ad1ebf27731a43397686103aa5277e7f2fcf
+```
+
+Нужна проверка комита. Обратитесь к комиту, указанному в [этом файле](https://github.com/near/stakewars-iii/blob/main/commit.md).
+```
+git checkout
 ```
 
 2. Скомпилируйте последнюю версию nearcore. Это займет некоторое время.
