@@ -275,8 +275,13 @@ near validators current
 git clone https://github.com/near/nearcore
 cd nearcore
 git fetch
-git checkout 8448ad1ebf27731a43397686103aa5277e7f2fcf
 ```
+
+Checkout to the commit needed. Please refer to the commit defined in [this file](https://github.com/near/stakewars-iii/blob/main/commit.md). 
+```
+git checkout <commit>
+```
+
 
 2. Compile latest nearcore. It takes some time.
 ```
