@@ -428,6 +428,74 @@ Let’s change reward commission to 1-100%
 near call <pool_name> update_reward_fee_fraction '{"reward_fee_fraction": {"numerator": 1, "denominator": 100}}' --accountId <account_id> --gas=300000000000000
 ```
 
+## Create cron task
+
+* Create a new file on /home/<USER_ID>/scripts/ping.sh
+```
+#!/bin/sh
+# Ping call to renew Proposal added to crontab
+
+export NEAR_ENV=shardnet
+export LOGS=/home/<USER_ID>/logs
+export POOLID=<YOUR_POOL_ID>
+export ACCOUNTID=<YOUR_ACCOUNT_ID>
+
+echo "---" >> $LOGS/all.log
+date >> $LOGS/all.log
+near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
+near proposals | grep $POOLID >> $LOGS/all.log
+near validators current | grep $POOLID >> $LOGS/all.log
+near validators next | grep $POOLID >> $LOGS/all.log
+```
+* Create a new crontab, running every 5 minutes:
+```
+crontab -e
+*/5 * * * * sh /home/<USER_ID>/scripts/ping.sh
+```
+* List crontab to see it is running:
+```
+crontab -l
+```
+* Review your logs
+```
+cat home/<USER_ID>/logs/all.log
+```
+
+
+
+## Monitor
+
+#### Log Files
+The log file is stored either in the ~/.nearup/logs directory or in systemd depending on your setup.
+
+Systemd Command:
+```
+journalctl -n 100 -f -u neard | ccze -A
+```
+
+```
+sudo apt install curl jq
+```
+###### Common Commands:
+Check your node version:
+```
+curl -s http://127.0.0.1:3030/status | jq .version
+```
+Check Delegators and Stake
+```
+near view <your pool>.factory.shardnet.near get_accounts '{"from_index": 0, "limit": 10}' --accountId <accountId>.shardnet.near
+```
+Check Reason Validator Kicked
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.prev_epoch_kickout[] | select(.account_id | contains ("<POOL_ID>"))' | jq .reason
+```
+Check Blocks Produced / Expected
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.current_validators[] | select(.account_id | contains ("POOL_ID"))'
+```
+
+
+
 ## Other Command
 Unstake NEAR
 Amount in yoctoNEAR.
@@ -483,37 +551,7 @@ near call <staking_pool_id> pause_staking '{}' --accountId <accountId>
 ```
 near call <staking_pool_id> resume_staking '{}' --accountId <accountId>
 ```
-* Create a new file on /home/<USER_ID>/scripts/ping.sh
-```
-#!/bin/sh
-# Ping call to renew Proposal added to crontab
 
-export NEAR_ENV=shardnet
-export LOGS=/home/<USER_ID>/logs
-export POOLID=<YOUR_POOL_ID>
-export ACCOUNTID=<YOUR_ACCOUNT_ID>
-
-echo "---" >> $LOGS/all.log
-date >> $LOGS/all.log
-near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
-near proposals | grep $POOLID >> $LOGS/all.log
-near validators current | grep $POOLID >> $LOGS/all.log
-near validators next | grep $POOLID >> $LOGS/all.log
-```
-* Create a new crontab, running every 5 minutes:
-```
-crontab -e
-*/5 * * * * sh /home/<USER_ID>/scripts/ping.sh
-```
-* List crontab to see it is running:
-```
-crontab -l
-```
-* Review your logs
-```
-cat home/<USER_ID>/logs/all.log
-```
-> And finally node became a validator!
 
 
 
