@@ -428,6 +428,71 @@ near call <staking_pool_id> deposit_and_stake --amount <amount> --accountId <acc
 ```
 
 
+## Создайте задачу cron
+
+* Создайте новый файл в /home/<USER_ID>/scripts/ping.sh
+```
+#!/bin/sh
+# Ping call to renew Proposal added to crontab
+
+export NEAR_ENV=shardnet
+export LOGS=/home/<USER_ID>/logs
+export POOLID=<YOUR_POOL_ID>
+export ACCOUNTID=<YOUR_ACCOUNT_ID>
+
+echo "---" >> $LOGS/all.log
+date >> $LOGS/all.log
+near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
+near proposals | grep $POOLID >> $LOGS/all.log
+near validators current | grep $POOLID >> $LOGS/all.log
+near validators next | grep $POOLID >> $LOGS/all.log
+```
+* Создайте новый кронтаб, запускаемый каждые 5 минут:
+```
+crontab -e
+*/5 * * * * sh /home/<USER_ID>/scripts/ping.sh
+```
+* Введите кронтаб что бы увидеть как она выглядит
+```
+crontab -l
+```
+* Чекнуть ваши логи
+```
+cat home/<USER_ID>/logs/all.log
+```
+
+
+## Монитор
+
+#### Файлы журналов
+Файл журнала хранится либо в каталоге ~/.nearup/logs, либо в systemd, в зависимости от вашей настройки.
+
+
+```
+journalctl -n 100 -f -u neard | ccze -A
+```
+
+```
+sudo apt install curl jq
+```
+###### Общие команды:
+Проверьте версию вашего node:
+```
+curl -s http://127.0.0.1:3030/status | jq .version
+```
+Проверьте делегаторов
+```
+near view <your pool>.factory.shardnet.near get_accounts '{"from_index": 0, "limit": 10}' --accountId <accountId>.shardnet.near
+```
+Проверка причины срабатывания валидатора
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.prev_epoch_kickout[] | select(.account_id | contains ("<POOL_ID>"))' | jq .reason
+```
+Произведенные / ожидаемые блоки проверки
+```
+curl -s -d '{"jsonrpc": "2.0", "method": "validators", "id": "dontcare", "params": [null]}' -H 'Content-Type: application/json' 127.0.0.1:3030 | jq -c '.result.current_validators[] | select(.account_id | contains ("POOL_ID"))'
+```
+
 
 
 ## Другая команда
@@ -485,97 +550,3 @@ near call <staking_pool_id> pause_staking '{}' --accountId <accountId>
 ```
 near call <staking_pool_id> resume_staking '{}' --accountId <accountId>
 ```
-* Создайте новый файл на /home/<USER_ID>/scripts/ping.sh
-```
-#!/bin/sh
-# Ping call to renew Proposal added to crontab
-
-export NEAR_ENV=shardnet
-export LOGS=/home/<USER_ID>/logs
-export POOLID=<YOUR_POOL_ID>
-export ACCOUNTID=<YOUR_ACCOUNT_ID>
-
-echo "---" >> $LOGS/all.log
-date >> $LOGS/all.log
-near call $POOLID.factory.shardnet.near ping '{}' --accountId $ACCOUNTID.shardnet.near --gas=300000000000000 >> $LOGS/all.log
-near proposals | grep $POOLID >> $LOGS/all.log
-near validators current | grep $POOLID >> $LOGS/all.log
-near validators next | grep $POOLID >> $LOGS/all.log
-
-```
-* Создайте новый кронтаб, запускаемый каждые 5 минут:
-```
-crontab -e
-*/5 * * * * * sh /home/<USER_ID>/scripts/ping.sh
-```
-* Перечислите crontab, чтобы увидеть, что он запущен:
-```
-crontab -l
-```
-* Просмотрите свои журналы
-```
-cat home/<USER_ID>/logs/all.log
-```
-> И наконец-то node стал валидатором!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
